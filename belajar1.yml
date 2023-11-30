@@ -1,0 +1,294 @@
+openapi: "3.0.3"
+info:
+  title: "Todolist RESTful API"
+  version: "1.0.0"
+  description: "OpenAPI Specification for Todolist RESTful API"
+  termsOfService: "https://api.server.test/terms/"
+  contact:
+    name: "John Doe"
+    email: "contact@evandrarf.com"
+    url: "https://evandrarf.com/"
+  license:
+    name: "Apache 2.0"
+    url: "https://www.apache.org/licenses/LICENSE-2.0.html"
+servers:
+  - url: "https://{environment}.api.evandrarf.com/api/v1"
+    description: "Todolist RESTful API server"
+    variables:
+      environment:
+        enum:
+          - "prod"
+          - "dev"
+          - "staging"
+        default: "prod"
+externalDocs:
+  url: "https://evandrarf.com/"
+  description: "Find out more about me"
+paths:
+  /todolist:
+    get:
+      summary: "Get all todolist"
+      security:
+        - TodolistAuth: []
+      tags:
+        - "Todolist"
+      description: "Get all active todolist"
+      responses:
+        "200":
+          description: "Success get all todolist"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArrayTodolist"
+              examples:
+                success:
+                  description: "Example response body for success get all todolist"
+                  value:
+                    - id: "1"
+                      name: "Belajar Pemrograman Java"
+                      priority: 1
+                      tags:
+                        - "Java"
+                        - "Pemrograman"
+                    - id: "2"
+                      name: "Belajar Pemrograman PHP"
+                      priority: 4
+                      tags:
+                        - "PHP"
+                        - "Pemrograman"
+
+      parameters:
+        - name: "include_done"
+          in: "query"
+          description: "Include done todolist"
+          required: false
+          schema:
+            type: "boolean"
+            default: false
+        - name: "name"
+          in: "query"
+          description: "Filter todolist by name"
+          required: false
+          schema:
+            type: "string"
+            nullable: true
+            minLength: 1
+            maxLength: 100
+          examples:
+            java:
+              description: "Example name Java"
+              value: "java"
+            php:
+              description: "Example name PHP"
+              value: "php"
+
+    post:
+      summary: "Create new todolist"
+      security:
+        - TodolistAuth: []
+      tags:
+        - "Todolist"
+      description: "Create new todolist"
+      responses:
+        "201":
+          description: "Success create new todolist"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Todolist"
+              examples:
+                java:
+                  $ref: "#/components/examples/ResponseJava"
+                php:
+                  $ref: "#/components/examples/ResponsePHP"
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrUpdateTodolistRequest"
+            examples:
+              java:
+                $ref: "#/components/examples/java"
+              php:
+                $ref: "#/components/examples/php"
+
+  /todolist/{todolistId}:
+    put:
+      summary: "Update existing todolist"
+      security:
+        - TodolistAuth: []
+      tags:
+        - "Todolist"
+      description: "Update existing todolist in database"
+      responses:
+        "200":
+          description: "Success update existing todolist"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Todolist"
+              examples:
+                java:
+                  $ref: "#/components/examples/ResponseJava"
+                php:
+                  $ref: "#/components/examples/ResponsePHP"
+
+      parameters:
+        - $ref: "#/components/parameters/TodolistId"
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrUpdateTodolistRequest"
+            examples:
+              java:
+                $ref: "#/components/examples/java"
+              php:
+                $ref: "#/components/examples/php"
+
+    delete:
+      summary: "Delete existing todolist"
+      tags:
+        - "Todolist"
+      description: "Delete existing todolist in database"
+      security:
+        - TodolistAuth: []
+      responses:
+        "200":
+          description: "Success delete existing todolist"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  success:
+                    type: "boolean"
+                    default: true
+              examples:
+                success:
+                  description: "Example response body for success delete existing todolist"
+                  value:
+                    success: true
+        "404":
+          description: "Todolist not found"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  success:
+                    type: "boolean"
+                    default: false
+                  message:
+                    type: "string"
+                    default: "Todolist not found"
+              examples:
+                failed:
+                  description: "Example response body for todolist not found"
+                  value:
+                    success: false
+                    message: "Todolist not found"
+      parameters:
+        - $ref: "#/components/parameters/TodolistId"
+
+components:
+  parameters:
+    TodolistId:
+      name: "todolistId"
+      in: "path"
+      description: "Todolist ID for update"
+      required: true
+      schema:
+        type: "integer"
+        format: "int64"
+      examples:
+        java:
+          description: "Example todolistId for Java"
+          value: 1
+        php:
+          description: "Example todolistId for PHP"
+          value: 2
+  securitySchemes:
+    TodolistAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+  schemas:
+    Todolist:
+      type: "object"
+      properties:
+        id:
+          type: "string"
+          nullable: false
+        name:
+          type: "string"
+          nullable: false
+        priority:
+          type: "integer"
+          format: "int32"
+          nullable: false
+        tags:
+          type: "array"
+          items:
+            type: "string"
+            minItems: 1
+          nullable: false
+    CreateOrUpdateTodolistRequest:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+          nullable: false
+        priority:
+          type: "integer"
+          format: "int32"
+          nullable: false
+        tags:
+          type: "array"
+          items:
+            type: "string"
+            minItems: 1
+          nullable: false
+    ArrayTodolist:
+      type: "array"
+      items:
+        $ref: "#/components/schemas/Todolist"
+  examples:
+    php:
+      description: "Example request body for PHP"
+      value:
+        name: "Belajar Pemrograman PHP"
+        priority: 4
+        tags:
+          - "PHP"
+          - "Pemrograman"
+    java:
+      description: "Example request body for Java"
+      value:
+        name: "Belajar Pemrograman Java"
+        priority: 1
+        tags:
+          - "Java"
+          - "Pemrograman"
+    ResponsePHP:
+      description: "Example response body for PHP"
+      value:
+        id: "3"
+        name: "Belajar Pemrograman PHP"
+        priority: 4
+        tags:
+          - "PHP"
+          - "Pemrograman"
+    ResponseJava:
+      description: "Example response body for Java"
+      value:
+        id: "1"
+        name: "Belajar Pemrograman Java"
+        priority: 1
+        tags:
+          - "Java"
+          - "Pemrograman"
